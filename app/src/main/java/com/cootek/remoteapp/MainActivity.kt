@@ -11,8 +11,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<TextView>(R.id.bt).setOnClickListener {
-            //制造一个crash
-             5 / 0
+            makeCrash()
         }
+    }
+
+    /**
+     * 制造一个crash
+     */
+    fun makeCrash() {
+        5 / 0
     }
 }

@@ -23,6 +23,7 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
     private static final Format FORMAT = new SimpleDateFormat("MM-dd HH-mm-ss", Locale.getDefault());
     private Context mContext;
     private static CrashUtil INSTANCE = new CrashUtil();
+    private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
     /**
      * 保证只有一个CrashHandler实例
@@ -39,6 +40,7 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
 
     public void init(Context context) {
         this.mContext = context.getApplicationContext();
+        defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
     }
 
@@ -105,6 +107,16 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
+
+        //优先处理自己的逻辑，把crash日志存起来
         print(e);
+
+        if (defaultUncaughtExceptionHandler != null) {
+            //如果原来的 Thread 有自己的 handler , 就把 crash 传递下去,
+            //比如：如果集成了bugly , 那就传给bugly 处理
+            defaultUncaughtExceptionHandler.uncaughtException(t, e);
+        } else {
+
+        }
     }
 }
