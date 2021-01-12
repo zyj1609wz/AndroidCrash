@@ -1,6 +1,9 @@
 package com.cootek.remoteapp;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Environment;
 
 import androidx.annotation.NonNull;
@@ -24,6 +27,7 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
     private Context mContext;
     private static CrashUtil INSTANCE = new CrashUtil();
     private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
+    private String deviceInfo;
 
     /**
      * 保证只有一个CrashHandler实例
@@ -42,6 +46,27 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
         this.mContext = context.getApplicationContext();
         defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(this);
+
+        //自定义设备信息
+        PackageInfo pi = null;
+        String versionName = "";
+        int versionCode = 0;
+
+        try {
+            pi = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0);
+            if (pi != null) {
+                versionName = pi.versionName;
+                versionCode = pi.versionCode;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        deviceInfo = "versionName: " + versionName + "\n"
+                + "versionCode: " + versionCode + "\n"
+                + "androidSDK: " + Build.VERSION.RELEASE + "\n"  // 系统版本
+                + "DeviceModel: " + Build.MANUFACTURER + " " + Build.MODEL + "\n"// 设备型号
+                + "\n";
     }
 
     /**
@@ -53,6 +78,7 @@ public class CrashUtil implements Thread.UncaughtExceptionHandler {
             PrintWriter pw = null;
             try {
                 pw = new PrintWriter(new FileWriter(fileName, false));
+                pw.write(deviceInfo);  //写入设备信息
                 throwable.printStackTrace(pw);
             } catch (IOException ioException) {
 
